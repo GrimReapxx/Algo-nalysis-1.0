@@ -1,18 +1,8 @@
 import asyncio
 import aiohttp 
-import json 
-import time 
-import tweepy 
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+from datetime import datetime
+from typing import List, Dict, Optional
 from rich.console import Console 
-from rich.table import Table
-from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from textblob import TextBlob
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-import re
 
 console = Console()
 
