@@ -12,9 +12,9 @@ class SentimentAnalyzer:
         self.narrative_keywords = {
             'hype': ['moon', '🚀', 'rocket', 'bullish', 'pump', 'gem', 'alpha', 'lfg'],
             'fomo': ['fomo', 'dont miss', 'last chance', 'going crazy', 'exploding', 'parabolic'],
-            'community': ['community', 'holders', 'diamond hands', '💎', 'hodl', 'strong hands'],
+            'community': ['community', 'holders', 'diamond hands', 'hodl', 'strong hands'],
             'utility': ['utility', 'usecase', 'product', 'development', 'roadmap', 'team'],
-            'meme': ['meme', 'viral', 'funny', 'lol', '😂', 'hilarious', 'based'],
+            'meme': ['meme', 'viral', 'funny', 'lol', 'hilarious', 'based'],
             'risk': ['rug', 'scam', 'careful', 'dyor', 'risky', 'beware', 'sus', 'copytraders', 'crash']
         }
     
