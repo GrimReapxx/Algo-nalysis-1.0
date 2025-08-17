@@ -16,7 +16,7 @@ console = Console()
 class APITester:
     def __init__(self):
         self.console = console
-        self.test_results()
+        self.test_results = {}
         
         self.api_keys = { 
             'BIRDEYE_API_KEY': os.getenv('BIRDEYE_API_KEY'),
@@ -32,20 +32,24 @@ class APITester:
         env_table.add_column("Status", style="green")
         env_table.add_column("Value Preview", style="dim")
         
+        env_results = {}
+        
         for key, value in self.api_keys.items():
             if value:
                 status = "✅ Found"
                 preview = f"{value[:8]}..." if len(value) > 8 else value 
-                self.test_results[key] = True
+                env_results[key] = True
             else:
                 status = "❌ Missing"
                 preview = "Not set"
-                self.test_results[key] = False 
+                env_results[key] = False 
                 
             env_table.add_row(key, status, preview)
             
         self.console.print(env_table)
-        return all(self.test_results.values())
+        
+        self.test_results.update(env_results)
+        return all(env_results.values())
     
     async def test_birdeye_api(self):
         self.console.print("\n[bold yellow]🦅 TESTING BIRDEYE API[/bold yellow]") 
@@ -67,7 +71,7 @@ class APITester:
                 async with session.get(
                     "https://public-api.birdeye.so/defi/tokenlist",
                     headers=headers,
-                    params={"sort_by": "creation_time", "sort_type": "desc", "offset": 0, "limit": 5}
+                    params={"sort_by": "v24hUSD", "sort_type": "desc", "offset": 0, "limit": 5}
                 ) as response: 
                     if response.status == 200:
                         data = await response.json()
@@ -142,7 +146,7 @@ class APITester:
                         self.console.print("CoinGecko API: Connected Successfully")
                         
                     if 'bitcoin' in data:
-                        btc_price = data['bitcon']['usd']
+                        btc_price = data['bitcoin']['usd']
                         btc_change = data['bitcoin']['usd_24hr_change']
                         self.console.print(f"📊 BTC Price: ${btc_price:,.2f} ({btc_change:+.2f}% 24h)")
                         
@@ -206,7 +210,7 @@ class APITester:
         
         self.console.print(welcome_panel)
         
-        test_results = ()
+        final_results = {}
         
         with Progress(
             SpinnerColumn(),
@@ -218,32 +222,32 @@ class APITester:
             
             # Test 1: Enviroment
             progress.update(task, description="Testing enviroment setup...")
-            test_results['enviroment'] = await self.enviroment_test_setup()
+            final_results['enviroment'] = await self.enviroment_test_setup()
             progress.advance(task)
             
             # Test 2: Birdeye
             progress.update(task, description="Testing Birdeye API...")
-            test_results['birdeye'] = await self.test_birdeye_api()
+            final_results['birdeye'] = await self.test_birdeye_api()
             progress.advance(task)
             
             # Test 3: Twitter
             progress.update(task, description="Testing Twitter API...")
-            test_results['twitter'] = await self.test_twitter_api()
+            final_results['twitter'] = await self.test_twitter_api()
             progress.advance(task)
             
             # Test 4: CoinGecko
             progress.update(task, description="Testing CoinGecko API...")
-            test_results['coingecko'] = await self.test_coingecko_api()
+            final_results['coingecko'] = await self.test_coingecko_api()
             progress.advance(task)
             
             # Test 5: Integration
             progress.update(task, description="Testing full integration...")
-            test_results['integration'] = await self.test_memecoin_hunter_integration()
+            final_results['integration'] = await self.test_memecoin_hunter_integration()
             progress.advance(task)
             
-        self.display_test_summary(test_results)
+        self.display_test_summary(final_results)
         
-        return test_results
+        return final_results
     
     def display_test_summary(self, results):
         summary_table = Table(title="🧪 API Test Results Summary")

@@ -48,7 +48,7 @@ class BirdeyeClient:
         console.print(f"[yellow]🔍 Scanning {chain.upper()} for new memecoins...[/yellow]")
         
         params = {
-            "sort_by": "created_time",
+            "sort_by": "v24hUSD",
             "sort_type": "desc",
             "offset": 0,
             "limit": 50
