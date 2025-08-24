@@ -4,7 +4,7 @@ from rich.console import Console
 
 class TwitterClient:
     def __init__(self, bearer_token: str):
-        self.client = tweepy.client(bearer_token=bearer_token, wait_on_rate_limit=True)
+        self.client = tweepy.Client(bearer_token=bearer_token, wait_on_rate_limit=True)
         self.console = Console()
         
     async def fetch_recent_tweets(self, query: str, max_results: int = 100) -> List[str]:
