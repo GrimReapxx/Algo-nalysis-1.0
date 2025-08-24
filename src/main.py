@@ -29,7 +29,7 @@ class MemecoinHunter:
         
     async def initialize_systems(self):
         with Progress(
-            SpinnerColumn,
+            SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             console=self.console
         ) as progress:
@@ -74,7 +74,7 @@ class MemecoinHunter:
         self.dashboard.display_opportunities(qualified_opportunities[:10])
         return qualified_opportunities
     
-    async def chain_hunt(self, chain: str):
+    async def _chain_hunt(self, chain: str):
         self.console.print(f"\n[yellow]Hunting {chain.upper()} chain...[/yellow]")
         
         try:
@@ -131,8 +131,8 @@ class MemecoinHunter:
                 
         except Exception as e:
             self.console.print(f"[bold red]Hunting session failed: {e}[/bold red]")
-        finally:
-            await self.birdeye.cleanup()
+        # finally:
+        #     await self.birdeye.cleanup()
             
     async def hunt_loop(self, interval_minutes: int = 15):
         self.console.print(f"[cyan]Starting Hunt Loop Trial (every{interval_minutes} minutes)[/cyan]")

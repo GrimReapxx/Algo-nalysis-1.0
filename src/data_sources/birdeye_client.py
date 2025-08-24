@@ -31,7 +31,7 @@ class BirdeyeClient:
     
     async def make_request(self, endpoint: str, params: Dict = None) -> Optional[Dict]:
         try:
-            session = await self.get_accessed()
+            session = await self.get_session()
             url = f"{self.base_url}/{endpoint}"
             
             async with session.get(url, headers=self.headers, params=params) as response:
