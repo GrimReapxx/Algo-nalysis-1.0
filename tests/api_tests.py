@@ -8,10 +8,11 @@ from rich.text import Text
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Load enviroment variables
+# Load environment variables
 load_dotenv('config/api_keys.env')
 
 console = Console()
+
 
 class APITester:
     def __init__(self):
@@ -24,10 +25,10 @@ class APITester:
             'COINGECKO_API_KEY': os.getenv('COINGECKO_API_KEY', 'demo'),
         }
         
-    async def enviroment_test_setup(self):
-        self.console.print("\n[bold cyan]🔧 TESTING ENVIROMENT SETUP[/bold cyan]")
+    async def environment_test_setup(self):
+        self.console.print("\n[bold cyan]🔧 TESTING ENVIRONMENT SETUP[/bold cyan]")
         
-        env_table = Table(title="Enviroment Variables check")
+        env_table = Table(title="Environment Variables check")
         env_table.add_column("API Key", style="cyan")
         env_table.add_column("Status", style="green")
         env_table.add_column("Value Preview", style="dim")
@@ -71,7 +72,12 @@ class APITester:
                 async with session.get(
                     "https://public-api.birdeye.so/defi/tokenlist",
                     headers=headers,
-                    params={"sort_by": "v24hUSD", "sort_type": "desc", "offset": 0, "limit": 5}
+                    params={
+                        "sort_by": "v24hUSD", 
+                        "sort_type": "desc", 
+                        "offset": 0, 
+                        "limit": 5
+                        }
                 ) as response: 
                     if response.status == 200:
                         data = await response.json()
@@ -95,32 +101,68 @@ class APITester:
             return False
         
         try:
-            import tweepy
             
-            client = tweepy.client(bearer_token=self.api_keys['TWITTER_BEARER_TOKEN'])
-            self.console.print("Testing Twitter API Connectivity...")
-            
-            tweets = client.search_recent_tweets( 
-                query="bitcoin -is:retweet lang:en",
-                max_results=10,
-                tweet_fields=['created_at', 'public_metrics']
-            )
-            
-            
-            if tweets and tweets.data:
-                self.console.print("✅ Twitter API: Connect Sucessfully")
-                self.console.print(f"📊 Retrieved {len(tweets.data)} sample tweets")
-                
-                sample_tweet = tweets.data[0].text[:50] + "..." if len(tweets.data[0].text) > 50 else tweets.data[0].text
-                self.console.print(f"📝 Sample tweet: \"{sample_tweet}\"")
-                return True
-            else:
-                self.console.print("❌ Twitter API: No data returned")
+            try:
+                import tweepy
+                self.console.print(f"📦 Tweepy Version: {tweepy.__version__}")
+            except ImportError:
+                self.console.print("❌ Tweepy not installed. Run: pip install tweepy")
                 return False
             
+            self.console.print("Initializing Twitter client...")
+            
+            try:
+                client = tweepy.Client(
+                    bearer_token=self.api_keys['TWITTER_BEARER_TOKEN'], 
+                    wait_on_rate_limit=True
+                )
+            except Exception as init_error:
+                self.console.print(f"❌ Client initialization failed: {init_error}")
+                return False
+            
+            self.console.print("Testing Twitter API Connectivity...")
+            
+            try:
+                response = client.search_recent_tweets( 
+                    query="bitcoin -is:retweet lang:en",
+                    max_results=10,
+                    tweet_fields=['created_at', 'public_metrics']
+                )
+            
+                if response and response.data:
+                    self.console.print("✅ Twitter API: Connected Sucessfully")
+                    self.console.print(f"📊 Retrieved {len(response.data)} sample tweets")
+                        
+                    sample_tweet = (
+                        response.data[0].text[:50] + "..." 
+                        if len(response.data[0].text) > 50 else response.data[0].text
+                    ) 
+                    self.console.print(f"📝 Sample tweet: \"{sample_tweet}\"")
+                    return True
+                
+                else:
+                    self.console.print("❌ Twitter API: No data returned")
+                    self.console.print("💡 API Plan limitations or Query restrictions")
+                    return False
+            
+            except tweepy.TooManyRequests:
+                self.console.print("❌ Twitter API: Rate limit exceeded")
+                self.console.print("💡 Try again in 15 minutes")
+                return False
+            except tweepy.Unauthorized:
+                self.console.print("❌ Twitter API: Unauthorized (401)")
+                self.console.print("💡 Check your Bearer Token validity")
+                return False
+            except tweepy.Forbidden:
+                self.console.print("❌ Twitter API: Forbidden (403)")
+                self.console.print("💡 App requires elevated access for this endpoint")
+                return False
+            except Exception as api_error:
+                self.console.print(f"❌ Twitter API Error: {api_error}")
+                return False
+                
         except Exception as e:
             self.console.print(f"❌ Twitter API Connection Failed: {e}")
-            self.console.print("💡 Make sure your Bearer Token has the correct permissions")
             return False
     
     async def test_coingecko_api(self):
@@ -138,7 +180,7 @@ class APITester:
                 async with session.get(
                     "https://api.coingecko.com/api/v3/simple/price",
                     headers=headers,
-                    params={"ids": "bitcoin,ethereum", "vs_currencies": "usd", "include_24hr_change": "true"}
+                    params={"ids": "bitcoin, ethereum", "vs_currencies": "usd", "include_24hr_change": "true"}
                 ) as response:
                     
                     if response.status == 200:
@@ -147,7 +189,7 @@ class APITester:
                         
                     if 'bitcoin' in data:
                         btc_price = data['bitcoin']['usd']
-                        btc_change = data['bitcoin']['usd_24hr_change']
+                        btc_change = data['bitcoin']['usd_24h_change']
                         self.console.print(f"📊 BTC Price: ${btc_price:,.2f} ({btc_change:+.2f}% 24h)")
                         
                         return True
@@ -194,7 +236,9 @@ class APITester:
             self.console.print("💡 Make sure your structure matches the imports")
             return False
         except Exception as e:
+            import traceback
             self.console.print(f"Integration Test Failed: {e}")
+            self.console.print(traceback.format_exc())
             return False
         
     async def run_full_test_suite(self):
@@ -220,9 +264,9 @@ class APITester:
             
             task = progress.add_task("Running tests...", total=5)
             
-            # Test 1: Enviroment
-            progress.update(task, description="Testing enviroment setup...")
-            final_results['enviroment'] = await self.enviroment_test_setup()
+            # Test 1: Environment
+            progress.update(task, description="Testing environment setup...")
+            final_results['environment'] = await self.environment_test_setup()
             progress.advance(task)
             
             # Test 2: Birdeye
@@ -264,7 +308,7 @@ class APITester:
             if passed_status:
                 next_steps  ="Ready for production"
             else:
-                if test == 'enviroment':
+                if test == 'environment':
                     next_steps = "Add missing API keys to .env"
                 elif test == 'birdeye':
                     next_steps = "Check Birdeye API key validity"
