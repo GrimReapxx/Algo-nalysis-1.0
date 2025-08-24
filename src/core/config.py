@@ -1,7 +1,7 @@
 import os 
 from dotenv import load_dotenv
-from dataclasses import dataclass
-from typing import Dict,List
+from dataclasses import dataclass, field
+from typing import Dict,List, Optional
 
 load_dotenv("/config/api_keys.env")
 
@@ -23,7 +23,7 @@ class Settings:
     
     # Analysis Depth Settings 
     SENTIMENT_ANALYSIS_DEPTH: str = "aspect-level"
-    SOCIAL_PLATFORMS: List[str] = ["Twitter", "Reddit", "Telegram"]
+    SOCIAL_PLATFORMS: List[str] = field(default_factory=lambda: ["Twitter", "Reddit", "Telegram"])
 
     # Real-Time Settings
     WEBSOCKET_RECONNECT_INTERVAL: int = 30
