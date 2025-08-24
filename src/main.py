@@ -18,7 +18,7 @@ class MemecoinHunter:
         self.console=Console()
         
         # Initializing all components 
-        self.birdeye = BirdeyeClient(settings.BIRDEYE_API_KEY)
+        self.birdeye = None
         self.twitter_client = TwitterClient(settings.TWITTER_BEARER_TOKEN)
         self.sentiment_analyzer = SentimentAnalyzer(self.twitter_client)
         self.potential_scorer = MemecoinPotentialScorer()
@@ -28,6 +28,7 @@ class MemecoinHunter:
         self.opportunities = []
         
     async def initialize_systems(self):
+        self.birdeye = BirdeyeClient(settings.BIRDEYE_API_KEY)
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -120,6 +121,10 @@ class MemecoinHunter:
             self.console.print(f"[red]Error finding prey in {chain}: {e}[/red]")
             return []
     
+    async def cleanup(self):
+        if self.birdeye:
+            await self.birdeye.cleanup()
+            
     async def start_hunt_session(self):
         try:
             await self.golden_gem_hunt()
@@ -131,8 +136,8 @@ class MemecoinHunter:
                 
         except Exception as e:
             self.console.print(f"[bold red]Hunting session failed: {e}[/bold red]")
-        # finally:
-        #     await self.birdeye.cleanup()
+        finally:
+            await self.cleanup()
             
     async def hunt_loop(self, interval_minutes: int = 15):
         self.console.print(f"[cyan]Starting Hunt Loop Trial (every{interval_minutes} minutes)[/cyan]")

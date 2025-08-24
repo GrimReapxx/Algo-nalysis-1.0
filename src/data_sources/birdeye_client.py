@@ -10,12 +10,9 @@ class BirdeyeClient:
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.base_url = "https://public-api.birdeye.so"
-        self.headers = {
-            "X-API-KEY": self.api_key,
-            "Content-Type": "application/json"
-        }
+        self.headers = {"X-API-KEY": self.api_key, "Content-Type": "application/json"}
         self.session: Optional[aiohttp.ClientSession] = None
-        
+
         self.chains = {
             "solana": "solana",
             "base": "base",
@@ -24,6 +21,11 @@ class BirdeyeClient:
         self.min_volume_24h = 100000
         self.max_age_hours = 24
         
+    async def cleanup(self):
+        if self.session and not self.session.closed:
+            await self.session.close()
+            self.session = None
+
     async def get_session(self):
         if self.session is None or self.session.closed:
             self.session = aiohttp.ClientSession()
